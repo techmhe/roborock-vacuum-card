@@ -391,6 +391,7 @@ export class RoborockVacuumCard extends LitElement {
       return areas;
 
     for (let { area_id, roborock_area_id } of this.config.areas) {
+      area_id = area_id.replace(/ /g, '_').toLowerCase();
       const area = this.hass.areas[area_id];
       if (!area)
           continue;
