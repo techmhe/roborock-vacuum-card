@@ -1,8 +1,6 @@
 :host {
-  --vc-background: var(
-    --ha-card-background,
-    var(--card-background-color, white)
-  );
+  --vc-background: var(--ha-card-background,
+      var(--card-background-color, white));
   --vc-spacing: 10px;
   --vc-divider-color: var(--entities-divider-color, var(--divider-color));
   --vc-primary-text-color: var(--primary-text-color);
@@ -16,13 +14,22 @@
 }
 
 @keyframes pulse {
-  from { opacity: 1; }
-  50% { opacity: 0.5; }
-  to { opacity: 1; }
+  from {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 ha-card {
   background-color: var(--vc-background);
+
   .spacer {
     flex: 1
   }
@@ -43,11 +50,21 @@ ha-card {
         margin-right: 0;
       }
     }
+
     .modes {
       display: flex;
       margin: 0 auto;
       flex-direction: row;
       justify-content: space-evenly;
+    }
+
+    .battery-badge {
+      height: 24px !important;
+      width: 24px !important;
+      vertical-align: middle;
+    }
+    .icon-title {
+      vertical-align: bottom;
     }
   }
 
