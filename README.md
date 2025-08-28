@@ -10,6 +10,16 @@ Home Assistant vacuum card that uses core Roborock integration and supports mult
 
 This card is not highly configurable and was created for personal use. It expects (and was tested with) the Roborock S8 Pro Ultra vacuum robot and dock.
 
+## Language Support
+
+The card supports multiple languages including German (Deutsch). The language is automatically detected from your browser settings or Home Assistant configuration. Supported languages:
+
+- English (en)
+- German (de) 
+- Polish (pl)
+
+For German Home Assistant installations, the card automatically tries German entity naming patterns as fallbacks if the standard English entity names are not found.
+
 ## Card configuration
 
 ```yaml

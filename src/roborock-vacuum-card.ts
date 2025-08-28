@@ -50,10 +50,23 @@ export class RoborockVacuumCard extends LitElement {
   get sensor(): RoborockSensorIds {
     const name = this.name;
     return {
-      cleaning: `binary_sensor.${name}_cleaning`,
-      mopDrying: `binary_sensor.${name}_mop_drying`,
-      mopDryingRemainingTime: `sensor.${name}_mop_drying_remaining_time`,
-      battery: `sensor.${name}_battery`,
+      cleaning: this._getExistingSensorId([
+        `binary_sensor.${name}_cleaning`,
+        `binary_sensor.${name}_reinigung`
+      ]) || `binary_sensor.${name}_cleaning`,
+      mopDrying: this._getExistingSensorId([
+        `binary_sensor.${name}_mop_drying`,
+        `binary_sensor.${name}_mopp_trocknung`
+      ]) || `binary_sensor.${name}_mop_drying`,
+      mopDryingRemainingTime: this._getExistingSensorId([
+        `sensor.${name}_mop_drying_remaining_time`,
+        `sensor.${name}_mopp_trocknung_verbleibende_zeit`
+      ]) || `sensor.${name}_mop_drying_remaining_time`,
+      battery: this._getExistingSensorId([
+        `sensor.${name}_battery`,
+        `sensor.${name}_akku`,
+        `sensor.${name}_batterie`
+      ]) || `sensor.${name}_battery`,
     };
   }
 
@@ -139,7 +152,10 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private renderState(state: string | undefined) {
-    const reachStatusSensor = this._getExistingSensorId([`sensor.${this.name}_status`]);
+    const reachStatusSensor = this._getExistingSensorId([
+      `sensor.${this.name}_status`,
+      `sensor.${this.name}_zustand`  // German alternative
+    ]);
     if (!reachStatusSensor)
       return localize(`status.${state}`);
 
@@ -164,8 +180,16 @@ export class RoborockVacuumCard extends LitElement {
     if (!this.hass || !this.config)
       return nothing;
 
-    const vacuumErrorSensor = this._getExistingSensorId([`sensor.${this.name}_vacuum_error`, `sensor.${this.name}_current_error`]),
-      docErrorSensor = this._getExistingSensorId([`sensor.${this.name}_dock_error`]);
+    const vacuumErrorSensor = this._getExistingSensorId([
+        `sensor.${this.name}_vacuum_error`, 
+        `sensor.${this.name}_current_error`,
+        `sensor.${this.name}_staubsauger_fehler`,  // German alternatives
+        `sensor.${this.name}_aktueller_fehler`
+      ]),
+      docErrorSensor = this._getExistingSensorId([
+        `sensor.${this.name}_dock_error`,
+        `sensor.${this.name}_station_fehler`  // German alternative
+      ]);
 
     let isVacuumError = false;
     let vacuum: Template = nothing;

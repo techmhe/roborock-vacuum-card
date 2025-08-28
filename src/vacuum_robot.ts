@@ -63,11 +63,25 @@ export class VacuumRobot {
   }
 
   public getMopMode(): RoborockMopMode {
-    return this.state(`select.${this.name}_mop_intensity`);
+    // Try German entity names first, then English fallback
+    const entityId = this._getExistingSensorId([
+      `select.${this.name}_mop_intensity`,
+      `select.${this.name}_mopp_intensitaet`,
+      `select.${this.name}_wischintensitaet`
+    ]) || `select.${this.name}_mop_intensity`;
+    
+    return this.state(entityId);
   }
 
   public getRouteMode(): RoborockRouteMode {
-    return this.state(`select.${this.name}_mop_mode`);
+    // Try German entity names first, then English fallback
+    const entityId = this._getExistingSensorId([
+      `select.${this.name}_mop_mode`,
+      `select.${this.name}_mopp_modus`,
+      `select.${this.name}_wischmodus`
+    ]) || `select.${this.name}_mop_mode`;
+    
+    return this.state(entityId);
   }
 
   public callServiceAsync(service: string) {
@@ -95,15 +109,29 @@ export class VacuumRobot {
   }
 
   public setMopModeAsync(value: RoborockMopMode) {
+    // Try German entity names first, then English fallback
+    const entityId = this._getExistingSensorId([
+      `select.${this.name}_mop_intensity`,
+      `select.${this.name}_mopp_intensitaet`,
+      `select.${this.name}_wischintensitaet`
+    ]) || `select.${this.name}_mop_intensity`;
+    
     return this.hass.callService('select', 'select_option', {
-      entity_id: `select.${this.name}_mop_intensity`,
+      entity_id: entityId,
       option: value,
     });
   }
 
   public setRouteModeAsync(value: RoborockRouteMode) {
+    // Try German entity names first, then English fallback
+    const entityId = this._getExistingSensorId([
+      `select.${this.name}_mop_mode`,
+      `select.${this.name}_mopp_modus`,
+      `select.${this.name}_wischmodus`
+    ]) || `select.${this.name}_mop_mode`;
+    
     return this.hass.callService('select', 'select_option', {
-      entity_id: `select.${this.name}_mop_mode`,
+      entity_id: entityId,
       option: value,
     });
   }
@@ -114,5 +142,12 @@ export class VacuumRobot {
 
   private getAttributeValue(entity: HassEntity, attribute: string) {
     return entity.attributes[attribute];
+  }
+
+  private _getExistingSensorId(sensorIds: string[]): string | undefined {
+    for (let sensorId of sensorIds) {
+      if (this.hass.states[sensorId])
+        return sensorId;
+    }
   }
 }
