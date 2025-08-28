@@ -112,6 +112,9 @@ export class RoborockVacuumCard extends LitElement {
     if (!this.hass || !this.config)
       return nothing;
 
+    // Initialize current map if we have maps configuration
+    this.initializeCurrentMap();
+
     this.iconColor = getComputedStyle(document.documentElement)
       .getPropertyValue("--state-icon-color")
       .trim();
@@ -434,6 +437,23 @@ export class RoborockVacuumCard extends LitElement {
     );
   }
 
+  private initializeCurrentMap() {
+    if (!this.config.maps || this.config.maps.length === 0) {
+      return;
+    }
+
+    const maps = this.getVacuumMaps();
+    if (maps.length === 0) {
+      return;
+    }
+
+    // If current map is not valid, set to first available map
+    const currentMapExists = maps.some(map => map.flag === this.currentMapFlag);
+    if (!currentMapExists) {
+      this.currentMapFlag = maps[0].flag;
+    }
+  }
+
   private renderMapSwitcher(): Template {
     const maps = this.getVacuumMaps();
     
@@ -466,10 +486,16 @@ export class RoborockVacuumCard extends LitElement {
 
   private getVacuumMaps(): RoborockMap[] {
     const vacuumEntity = this.hass.states[this.config.entity];
-    if (!vacuumEntity || !vacuumEntity.attributes.maps) {
+    if (!vacuumEntity || !vacuumEntity.attributes || !vacuumEntity.attributes.maps) {
       return [];
     }
-    return vacuumEntity.attributes.maps as RoborockMap[];
+    
+    const maps = vacuumEntity.attributes.maps;
+    if (!Array.isArray(maps)) {
+      return [];
+    }
+    
+    return maps as RoborockMap[];
   }
 
   private getCurrentMap(): RoborockMap | undefined {
