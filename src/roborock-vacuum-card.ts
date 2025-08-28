@@ -16,6 +16,7 @@ import {
   HassEntity,
   RoborockSuctionMode,
   RoborockMopMode,
+  RoborockMap,
 } from './types'
 import { formatTime } from './format'
 import { getSuctionIcon, getMoppingIcon as getMopIcon, getRouteIcon } from './resorces'
@@ -124,6 +125,7 @@ export class RoborockVacuumCard extends LitElement {
     const battery = this.renderBattery();
     const stats = this.renderStats(isCleaning ? 'cleaning' : state);
     const actions = this.renderActions(isCleaning, state);
+    const mapSwitcher = this.renderMapSwitcher();
 
     const popup = this.renderPopup();
 
@@ -144,6 +146,7 @@ export class RoborockVacuumCard extends LitElement {
         ${stats}
         <div class="actions">
           ${actions}
+          ${mapSwitcher}
         </div>
       </ha-card>
       ${popup}
@@ -162,7 +165,7 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private renderPopup(): Template {
-    if (!this.hass || !this.config || !this.config.areas || !this.popupActive)
+    if (!this.hass || !this.config || (!this.config.areas && !this.config.maps) || !this.popupActive)
       return nothing;
 
     const areas = this.getAreas();
@@ -429,11 +432,150 @@ export class RoborockVacuumCard extends LitElement {
     );
   }
 
+  private initializeCurrentMap() {
+    // This method is no longer needed as we use the select entity
+    // Keeping for backward compatibility in case it's called elsewhere
+  }
+
+  private getCurrentMapFlag(): number {
+    // If map_select_entity is configured, use it to get current map
+    if (this.config.map_select_entity) {
+      const selectEntity = this.hass.states[this.config.map_select_entity];
+      if (selectEntity && selectEntity.state) {
+        const currentMapName = selectEntity.state;
+        const maps = this.getVacuumMaps();
+        const map = maps.find(m => m.name === currentMapName);
+        if (map) {
+          return map.flag;
+        }
+      }
+    }
+
+    // Fallback: return first available map flag or 0
+    const maps = this.getVacuumMaps();
+    return maps.length > 0 ? maps[0].flag : 0;
+  }
+
+  private renderMapSwitcher(): Template {
+    const maps = this.getVacuumMaps();
+    
+    // Only show map switcher if we have multiple maps and maps configuration
+    if (!this.config.maps || this.config.maps.length === 0 || maps.length <= 1) {
+      return nothing;
+    }
+
+    const currentMapFlag = this.getCurrentMapFlag();
+    const currentMap = maps.find(map => map.flag === currentMapFlag);
+    const mapName = currentMap ? currentMap.name : `Map ${currentMapFlag}`;
+
+    return html`
+      <div class="map-switcher" @click=${this.onMapSwitcherClick}>
+        <ha-icon icon="mdi:map"></ha-icon>
+        <span>${mapName}</span>
+      </div>
+    `;
+  }
+
+  private onMapSwitcherClick(e: Event) {
+    e.stopPropagation();
+    const maps = this.getVacuumMaps();
+    if (maps.length <= 1) return;
+
+    const currentMapFlag = this.getCurrentMapFlag();
+    
+    // Find current map index and switch to next
+    const currentIndex = maps.findIndex(map => map.flag === currentMapFlag);
+    const nextIndex = (currentIndex + 1) % maps.length;
+    const nextMap = maps[nextIndex];
+
+    // If map_select_entity is configured, use it to change map
+    if (this.config.map_select_entity && nextMap) {
+      this.hass.callService('select', 'select_option', {
+        entity_id: this.config.map_select_entity,
+        option: nextMap.name
+      });
+    }
+  }
+
+  private getVacuumMaps(): RoborockMap[] {
+    if (!this.config.maps || this.config.maps.length === 0) {
+      return [];
+    }
+
+    // Build maps from user configuration
+    const mapsData: { [key: number]: RoborockMap } = {};
+    
+    for (const mapArea of this.config.maps) {
+      const { map_flag, map_name, room_id, room_name } = mapArea;
+      
+      if (!mapsData[map_flag]) {
+        mapsData[map_flag] = {
+          flag: map_flag,
+          name: map_name,
+          rooms: {}
+        };
+      }
+      
+      // Add room to the map
+      mapsData[map_flag].rooms[room_id] = room_name;
+    }
+    
+    return Object.values(mapsData);
+  }
+
+  private getCurrentMap(): RoborockMap | undefined {
+    const maps = this.getVacuumMaps();
+    const currentMapFlag = this.getCurrentMapFlag();
+    return maps.find(map => map.flag === currentMapFlag);
+  }
+
   private getAreas() {
     const areas: RoborockArea[] = [];
 
-    if (!this.config.areas)
+    // Check if we have maps configuration (new multi-map mode)
+    if (this.config.maps && this.config.maps.length > 0) {
+      const currentMap = this.getCurrentMap();
+      if (!currentMap) {
+        return areas;
+      }
+
+      // If map has no rooms, create a single area with the map name
+      if (!currentMap.rooms || Object.keys(currentMap.rooms).length === 0) {
+        areas.push({
+          icon: undefined,
+          name: currentMap.name,
+          area_id: `map_${currentMap.flag}`,
+          roborock_area_id: currentMap.flag,
+          room_id: undefined,
+          map_flag: currentMap.flag,
+        });
+        return areas;
+      }
+
+      // Process map-based rooms from current map
+      const currentMapFlag = this.getCurrentMapFlag();
+      for (const { map_flag, room_id, room_name } of this.config.maps) {
+        if (map_flag !== currentMapFlag) {
+          continue;
+        }
+
+        areas.push({
+          icon: undefined,
+          name: room_name,
+          area_id: `map_${map_flag}_room_${room_id}`,
+          roborock_area_id: parseInt(room_id),
+          room_id,
+          map_flag,
+        });
+      }
+
       return areas;
+    }
+
+    // Fallback to legacy areas configuration
+    if (!this.config.areas) {
+      return areas;
+    }
 
     for (let { area_id, roborock_area_id } of this.config.areas) {
       area_id = area_id.replace(/ /g, '_').toLowerCase();

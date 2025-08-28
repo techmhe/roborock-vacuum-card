@@ -111,6 +111,7 @@ ha-card {
   .actions {
     display: flex;
     border-top: 1px solid var(--vc-divider-color);
+    position: relative;
 
     paper-button {
       color: var(--vc-toolbar-text-color);
@@ -122,6 +123,32 @@ ha-card {
 
       & ha-icon {
         margin-right: 5px;
+      }
+    }
+
+    .map-switcher {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--vc-primary-select-background);
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 0.85em;
+      color: var(--vc-primary-text-color);
+      border: 1px solid var(--divider-color);
+
+      ha-icon {
+        margin-right: 6px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &:hover {
+        background: color-mix(in srgb, var(--primary-color) 25%, var(--vc-background));
       }
     }
   }
