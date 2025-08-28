@@ -128,6 +128,16 @@ export class VacuumRobot {
     });
   }
 
+  public loadMultiMapAsync(mapFlag: number) {
+    return this.hass.callService('vacuum', 'send_command', {
+      entity_id: this.entity_id,
+      command: 'load_multi_map',
+      params: {
+        map_flag: mapFlag,
+      },
+    });
+  }
+
   private state(id: string): any {
     return this.hass.states[id].state;
   }

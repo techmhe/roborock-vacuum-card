@@ -21,8 +21,10 @@ import {
 import { formatTime } from './format'
 import { getSuctionIcon, getMoppingIcon as getMopIcon, getRouteIcon } from './resorces'
 import { CustomCleaningPopup } from './custom-cleaning-popup'
+import { MapSelectionPopup } from './map-selection-popup'
 
 typeof (CustomCleaningPopup);
+typeof (MapSelectionPopup);
 
 const PKG_VERSION = 'PKG_VERSION_VALUE';
 
@@ -40,6 +42,8 @@ export class RoborockVacuumCard extends LitElement {
   private config!: RoborockVacuumCardConfig;
   @state()
   private popupActive: boolean = false;
+  @state()
+  private mapSelectionPopupActive: boolean = false;
 
   private iconColor: string = '#000';
   private robot!: VacuumRobot;
@@ -106,6 +110,11 @@ export class RoborockVacuumCard extends LitElement {
     this.popupActive = false;
   }
 
+  private onMapSelectionPopupClose(event: MouseEvent) {
+    event.stopPropagation();
+    this.mapSelectionPopupActive = false;
+  }
+
   protected render(): Template {
     if (!this.hass || !this.config)
       return nothing;
@@ -128,6 +137,7 @@ export class RoborockVacuumCard extends LitElement {
     const mapSwitcher = this.renderMapSwitcher();
 
     const popup = this.renderPopup();
+    const mapSelectionPopup = this.renderMapSelectionPopup();
 
     return html`
       <ha-card>
@@ -150,6 +160,7 @@ export class RoborockVacuumCard extends LitElement {
         </div>
       </ha-card>
       ${popup}
+      ${mapSelectionPopup}
     `;
   }
 
@@ -172,6 +183,27 @@ export class RoborockVacuumCard extends LitElement {
 
     return html`
       <custom-cleaning-popup robot=${this.robot} areas=${areas} iconColor=${this.iconColor} @close=${this.onPopupClose}></custom-cleaning-popup>
+    `;
+  }
+
+  private renderMapSelectionPopup(): Template {
+    if (!this.hass || !this.config || !this.mapSelectionPopupActive)
+      return nothing;
+
+    const maps = this.getVacuumMaps();
+    if (maps.length <= 1) {
+      return nothing;
+    }
+
+    const currentMapFlag = this.getCurrentMapFlag();
+
+    return html`
+      <map-selection-popup 
+        .maps=${maps} 
+        .currentMapFlag=${currentMapFlag}
+        @close=${this.onMapSelectionPopupClose}
+        @map-select=${this.onMapSelect}
+      ></map-selection-popup>
     `;
   }
 
@@ -446,14 +478,21 @@ export class RoborockVacuumCard extends LitElement {
         const maps = this.getVacuumMaps();
         const map = maps.find(m => m.name === currentMapName);
         if (map) {
+          console.debug('Current map found:', currentMapName, 'flag:', map.flag);
           return map.flag;
+        } else {
+          console.debug('No map found for name:', currentMapName, 'available maps:', maps.map(m => m.name));
         }
+      } else {
+        console.debug('No select entity state found for:', this.config.map_select_entity);
       }
     }
 
     // Fallback: return first available map flag or 0
     const maps = this.getVacuumMaps();
-    return maps.length > 0 ? maps[0].flag : 0;
+    const fallbackFlag = maps.length > 0 ? maps[0].flag : 0;
+    console.debug('Using fallback map flag:', fallbackFlag);
+    return fallbackFlag;
   }
 
   private renderMapSwitcher(): Template {
@@ -481,19 +520,31 @@ export class RoborockVacuumCard extends LitElement {
     const maps = this.getVacuumMaps();
     if (maps.length <= 1) return;
 
-    const currentMapFlag = this.getCurrentMapFlag();
-    
-    // Find current map index and switch to next
-    const currentIndex = maps.findIndex(map => map.flag === currentMapFlag);
-    const nextIndex = (currentIndex + 1) % maps.length;
-    const nextMap = maps[nextIndex];
+    // Show map selection popup instead of cycling through maps
+    this.mapSelectionPopupActive = true;
+  }
 
-    // If map_select_entity is configured, use it to change map
-    if (this.config.map_select_entity && nextMap) {
-      this.hass.callService('select', 'select_option', {
-        entity_id: this.config.map_select_entity,
-        option: nextMap.name
-      });
+  private async onMapSelect(e: CustomEvent) {
+    const selectedMapFlag = e.detail as number;
+    const maps = this.getVacuumMaps();
+    const selectedMap = maps.find(map => map.flag === selectedMapFlag);
+    
+    if (!selectedMap) return;
+
+    try {
+      // First, send the load_multi_map command to the robot
+      await this.robot.loadMultiMapAsync(selectedMapFlag);
+      
+      // Then update the Home Assistant select entity if configured
+      if (this.config.map_select_entity) {
+        await this.hass.callService('select', 'select_option', {
+          entity_id: this.config.map_select_entity,
+          option: selectedMap.name
+        });
+      }
+    } catch (error) {
+      console.error('Failed to switch map:', error);
+      // You might want to show an error message to the user
     }
   }
 
@@ -520,7 +571,9 @@ export class RoborockVacuumCard extends LitElement {
       mapsData[map_flag].rooms[room_id] = room_name;
     }
     
-    return Object.values(mapsData);
+    const maps = Object.values(mapsData);
+    console.debug('Built maps from config:', maps);
+    return maps;
   }
 
   private getCurrentMap(): RoborockMap | undefined {
