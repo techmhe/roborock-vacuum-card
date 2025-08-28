@@ -498,17 +498,29 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private getVacuumMaps(): RoborockMap[] {
-    const vacuumEntity = this.hass.states[this.config.entity];
-    if (!vacuumEntity || !vacuumEntity.attributes || !vacuumEntity.attributes.maps) {
+    if (!this.config.maps || this.config.maps.length === 0) {
       return [];
     }
+
+    // Build maps from user configuration
+    const mapsData: { [key: number]: RoborockMap } = {};
     
-    const maps = vacuumEntity.attributes.maps;
-    if (!Array.isArray(maps)) {
-      return [];
+    for (const mapArea of this.config.maps) {
+      const { map_flag, map_name, room_id, room_name } = mapArea;
+      
+      if (!mapsData[map_flag]) {
+        mapsData[map_flag] = {
+          flag: map_flag,
+          name: map_name,
+          rooms: {}
+        };
+      }
+      
+      // Add room to the map
+      mapsData[map_flag].rooms[room_id] = room_name;
     }
     
-    return maps as RoborockMap[];
+    return Object.values(mapsData);
   }
 
   private getCurrentMap(): RoborockMap | undefined {
@@ -540,21 +552,16 @@ export class RoborockVacuumCard extends LitElement {
         return areas;
       }
 
-      // Process map-based rooms
+      // Process map-based rooms from current map
       const currentMapFlag = this.getCurrentMapFlag();
-      for (const { map_flag, room_id } of this.config.maps) {
+      for (const { map_flag, room_id, room_name } of this.config.maps) {
         if (map_flag !== currentMapFlag) {
-          continue;
-        }
-
-        const roomName = currentMap.rooms[room_id];
-        if (!roomName) {
           continue;
         }
 
         areas.push({
           icon: undefined,
-          name: roomName,
+          name: room_name,
           area_id: `map_${map_flag}_room_${room_id}`,
           roborock_area_id: parseInt(room_id),
           room_id,

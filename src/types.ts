@@ -106,7 +106,9 @@ export interface RoborockMap {
 
 export interface VacuumMapArea {
   map_flag: number;
+  map_name: string;
   room_id: string;
+  room_name: string;
 }
 
 export interface RoborockCleaningParameters {
