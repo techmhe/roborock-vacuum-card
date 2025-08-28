@@ -49,11 +49,42 @@ export class RoborockVacuumCard extends LitElement {
 
   get sensor(): RoborockSensorIds {
     const name = this.name;
+    
+    // Define multiple patterns for different integrations
+    const patterns = {
+      cleaning: [
+        `binary_sensor.${name}_cleaning`,
+        `binary_sensor.${name}_reinigen`, // German pattern
+        `binary_sensor.${name}_is_cleaning`,
+      ],
+      mopDrying: [
+        `binary_sensor.${name}_mop_drying`,
+        `binary_sensor.${name}_mopp_trocknung`, // German pattern
+        `binary_sensor.${name}_is_mop_drying`,
+      ],
+      mopDryingRemainingTime: [
+        `sensor.${name}_mop_drying_remaining_time`,
+        `sensor.${name}_mopp_trocknung_verbleibende_zeit`, // German pattern
+        `sensor.${name}_mop_dry_time_left`,
+      ],
+      battery: [
+        `sensor.${name}_battery`,
+        `sensor.${name}_batterie`, // German pattern
+        `sensor.${name}_akku`, // German pattern
+      ],
+    };
+
+    const defaultSensors = {
+      cleaning: this._getExistingSensorId(patterns.cleaning) || patterns.cleaning[0],
+      mopDrying: this._getExistingSensorId(patterns.mopDrying) || patterns.mopDrying[0],
+      mopDryingRemainingTime: this._getExistingSensorId(patterns.mopDryingRemainingTime) || patterns.mopDryingRemainingTime[0],
+      battery: this._getExistingSensorId(patterns.battery) || patterns.battery[0],
+    };
+
+    // Apply any user-defined sensor overrides
     return {
-      cleaning: `binary_sensor.${name}_cleaning`,
-      mopDrying: `binary_sensor.${name}_mop_drying`,
-      mopDryingRemainingTime: `sensor.${name}_mop_drying_remaining_time`,
-      battery: `sensor.${name}_battery`,
+      ...defaultSensors,
+      ...(this.config.sensor_overrides || {}),
     };
   }
 

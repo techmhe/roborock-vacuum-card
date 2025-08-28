@@ -1,0 +1,107 @@
+{
+  "status": {
+    "cleaning": "Reinigen",
+    "docked": "Angedockt",
+    "error": "Fehler",
+    "idle": "Bereit",
+    "offline": "Offline",
+    "paused": "Pausiert",
+    "returning": "Kehrt zurück",
+    "unavailable": "Nicht verfügbar"
+  },
+  "reach_status": {
+    "charger_disconnected": "Ladegerät getrennt",
+    "charging": "Lädt",
+    "cleaning": "Reinigen",
+    "emptying_the_bin": "Staubbehälter leeren",
+    "error": "Fehler",
+    "going_to_wash_the_mop": "Geht zum Wischmopp waschen",
+    "idle": "Bereit",
+    "paused": "Pausiert",
+    "returning_home": "Kehrt zur Basis zurück",
+    "segment_cleaning": "Raumreinigung",
+    "unavailable": "Nicht verfügbar",
+    "updating": "Aktualisierung",
+    "washing_the_mop": "Wischmopp waschen",
+    "zoned_cleaning": "Zonenreinigung"
+  },
+  "mode": {
+    "vac&mop": "Saugen & Wischen",
+    "mop": "Wischen",
+    "vac": "Saugen"
+  },
+  "suction_mode": {
+    "off": "Aus",
+    "quiet": "Leise",
+    "balanced": "Ausgewogen",
+    "turbo": "Turbo",
+    "max": "Max",
+    "max_plus": "Max+"
+  },
+  "mop_mode": {
+    "off": "Aus",
+    "mild": "Sanft",
+    "moderate": "Mäßig",
+    "intense": "Intensiv"
+  },
+  "route_mode": {
+    "fast": "Schnell",
+    "standard": "Standard",
+    "deep": "Tief",
+    "deep_plus": "Tief+"
+  },
+  "error": {
+    "invalid_config": "Ungültige Konfiguration",
+    "missing_entity": "Entität muss angegeben werden!"
+  },
+  "vacuum_error": {
+    "battery_error": "Akku-Fehler",
+    "bumper_stuck": "Stoßstange blockiert",
+    "cannot_cross_carpet": "Kann Teppich nicht überqueren",
+    "charging_error": "Ladefehler",
+    "cliff_sensor_error": "Absturzsensor-Fehler",
+    "dock_locator_error": "Dock-Locator-Fehler",
+    "fan_error": "Lüfter-Fehler",
+    "filter_blocked": "Filter blockiert",
+    "internal_error": "Interner Fehler",
+    "invisible_wall_detected": "Unsichtbare Wand erkannt",
+    "lidar_blocked": "Lidar blockiert",
+    "low_battery": "Schwache Batterie",
+    "main_brush_jammed": "Hauptbürste blockiert",
+    "no_dustbin": "Kein Staubbehälter",
+    "nogo_zone_detected": "Sperrzone erkannt",
+    "return_to_dock_fail": "Rückkehr zur Basis fehlgeschlagen",
+    "robot_on_carpet": "Roboter auf Teppich",
+    "robot_tilted": "Roboter geneigt",
+    "robot_trapped": "Roboter gefangen",
+    "side_brush_error": "Seitenbürste-Fehler",
+    "side_brush_jammed": "Seitenbürste blockiert",
+    "vertical_bumper_pressed": "Vertikale Stoßstange gedrückt",
+    "vibrarise_jammed": "Vibrarise blockiert",
+    "wall_sensor_dirty": "Wandsensor verschmutzt",
+    "wheels_jammed": "Räder blockiert",
+    "wheels_suspended": "Räder in der Luft"
+  },
+  "doc_error": {
+    "cleaning_tank_full_or_blocked": "Reinigungstank voll oder blockiert",
+    "dirty_tank_latch_open": "Schmutzwassertank-Verschluss offen",
+    "duct_blockage": "Leitungsblockierung",
+    "no_dustbin": "Kein Staubbehälter",
+    "waste_water_tank_full": "Abwassertank voll",
+    "water_empty": "Wasser leer"
+  },
+  "common": {
+    "custom_cleaning": "Benutzerdefinierte Reinigung",
+    "doc_error": "Dock-Fehler",
+    "mop_mode": "Wischintensität & Wasserdurchfluss",
+    "route_mode": "Route",
+    "suction_mode": "Saugkraft",
+    "vacuum_error": "Staubsauger-Fehler",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "return_to_base": "Zur Basis zurückkehren",
+    "locate": "Lokalisieren",
+    "stop": "Stopp"
+  }
+}

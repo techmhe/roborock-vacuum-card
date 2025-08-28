@@ -59,15 +59,54 @@ export class VacuumRobot {
   }
 
   public getSuctionMode(): RoborockSuctionMode {
-    return this.getAttributeValue(this.hass.states[this.entity_id], 'fan_speed');
+    const entity = this.hass.states[this.entity_id];
+    if (!entity) return RoborockSuctionMode.Balanced;
+    
+    // Try multiple attribute names for different integrations
+    const attributeNames = ['fan_speed', 'luefter_geschwindigkeit', 'saugkraft'];
+    for (const attr of attributeNames) {
+      const value = this.getAttributeValue(entity, attr);
+      if (value !== undefined) {
+        return value;
+      }
+    }
+    return RoborockSuctionMode.Balanced;
   }
 
   public getMopMode(): RoborockMopMode {
-    return this.state(`select.${this.name}_mop_intensity`);
+    // Try multiple patterns for mop intensity selection entity
+    const patterns = [
+      `select.${this.name}_mop_intensity`,
+      `select.${this.name}_wischintensitaet`, // German pattern
+      `select.${this.name}_mopp_intensitaet`, // German pattern
+      `select.${this.name}_scrub_intensity`,
+    ];
+    
+    for (const pattern of patterns) {
+      if (this.hass.states[pattern]) {
+        return this.state(pattern);
+      }
+    }
+    
+    return RoborockMopMode.Moderate; // Default fallback
   }
 
   public getRouteMode(): RoborockRouteMode {
-    return this.state(`select.${this.name}_mop_mode`);
+    // Try multiple patterns for mop mode selection entity
+    const patterns = [
+      `select.${this.name}_mop_mode`,
+      `select.${this.name}_wischmodus`, // German pattern
+      `select.${this.name}_mopp_modus`, // German pattern
+      `select.${this.name}_route_mode`,
+    ];
+    
+    for (const pattern of patterns) {
+      if (this.hass.states[pattern]) {
+        return this.state(pattern);
+      }
+    }
+    
+    return RoborockRouteMode.Standard; // Default fallback
   }
 
   public callServiceAsync(service: string) {
@@ -95,6 +134,24 @@ export class VacuumRobot {
   }
 
   public setMopModeAsync(value: RoborockMopMode) {
+    // Find the actual mop intensity entity
+    const patterns = [
+      `select.${this.name}_mop_intensity`,
+      `select.${this.name}_wischintensitaet`, // German pattern
+      `select.${this.name}_mopp_intensitaet`, // German pattern
+      `select.${this.name}_scrub_intensity`,
+    ];
+    
+    for (const pattern of patterns) {
+      if (this.hass.states[pattern]) {
+        return this.hass.callService('select', 'select_option', {
+          entity_id: pattern,
+          option: value,
+        });
+      }
+    }
+    
+    // Fallback to default pattern if nothing found
     return this.hass.callService('select', 'select_option', {
       entity_id: `select.${this.name}_mop_intensity`,
       option: value,
@@ -102,6 +159,24 @@ export class VacuumRobot {
   }
 
   public setRouteModeAsync(value: RoborockRouteMode) {
+    // Find the actual route mode entity
+    const patterns = [
+      `select.${this.name}_mop_mode`,
+      `select.${this.name}_wischmodus`, // German pattern
+      `select.${this.name}_mopp_modus`, // German pattern
+      `select.${this.name}_route_mode`,
+    ];
+    
+    for (const pattern of patterns) {
+      if (this.hass.states[pattern]) {
+        return this.hass.callService('select', 'select_option', {
+          entity_id: pattern,
+          option: value,
+        });
+      }
+    }
+    
+    // Fallback to default pattern if nothing found
     return this.hass.callService('select', 'select_option', {
       entity_id: `select.${this.name}_mop_mode`,
       option: value,
@@ -109,7 +184,8 @@ export class VacuumRobot {
   }
 
   private state(id: string): any {
-    return this.hass.states[id].state;
+    const entity = this.hass.states[id];
+    return entity ? entity.state : undefined;
   }
 
   private getAttributeValue(entity: HassEntity, attribute: string) {

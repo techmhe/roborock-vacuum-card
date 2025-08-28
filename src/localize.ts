@@ -2,6 +2,7 @@
 // https://github.com/custom-cards/boilerplate-card/blob/master/src/localize/localize.ts
 
 // Sorted alphabetically
+import * as de from './translations/de.json';
 import * as en from './translations/en.json';
 import * as pl from './translations/pl.json';
 
@@ -12,6 +13,7 @@ type Translations = {
 };
 
 const languages: Record<string, Translations> = {
+  de,
   en,
   pl,
 };
