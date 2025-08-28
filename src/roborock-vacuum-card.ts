@@ -176,8 +176,15 @@ export class RoborockVacuumCard extends LitElement {
     if (!this.hass || !this.config)
       return nothing;
 
-    const vacuumErrorSensor = this._getExistingSensorId([`sensor.${this.name}_vacuum_error`, `sensor.${this.name}_current_error`]),
-      docErrorSensor = this._getExistingSensorId([`sensor.${this.name}_dock_error`]);
+    const vacuumErrorSensor = this._getExistingSensorId([
+        `sensor.${this.name}_vacuum_error`,      // English
+        `sensor.${this.name}_current_error`,     // English alternative
+        `sensor.${this.name}_staubsauger_fehler`, // German
+      ]),
+      docErrorSensor = this._getExistingSensorId([
+        `sensor.${this.name}_dock_error`,        // English
+        `sensor.${this.name}_station_fehler`,    // German (hypothetical)
+      ]);
 
     let isVacuumError = false;
     let vacuum: Template = nothing;
