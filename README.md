@@ -19,6 +19,57 @@ The card supports multiple languages and automatically detects your browser's la
 
 If your browser language is set to German (de), the card will automatically display German text for all interface elements, status messages, and error descriptions.
 
+## German Home Assistant Integration
+
+Starting with version 1.3.4, the card automatically supports German Home Assistant integrations. The card will automatically detect and use German entity names when available, such as:
+
+- `binary_sensor.{robot}_reinigen` (instead of `_cleaning`)
+- `sensor.{robot}_batterie` (instead of `_battery`)
+- `sensor.{robot}_staubsauger_fehler` (instead of `_vacuum_error`)
+- `select.{robot}_wischmopp_intensiat` (instead of `_mop_intensity`)
+- `select.{robot}_route` (instead of `_mop_mode`)
+
+For German integrations, use German entity names in your stats configuration. Example German configuration:
+
+```yaml
+type: custom:roborock-vacuum-card
+entity: vacuum.robby
+stats:
+  default:
+    - entity: sensor.robby_verbleibende_filterzeit
+      divide_by: 3600
+      scale: 1
+      title: Filter
+      unit: h
+    - entity: sensor.robby_verbleibende_zeit_der_seitenburste
+      divide_by: 3600
+      scale: 1
+      title: Seitenbürste
+      unit: h
+    - entity: sensor.robby_verbleibende_zeit_der_hauptburste
+      divide_by: 3600
+      scale: 1
+      unit: h
+      title: Hauptbürste
+    - entity: sensor.robby_verbleibende_sensorzeit
+      divide_by: 3600
+      scale: 1
+      unit: h
+      title: Sensoren
+  cleaning:
+    - entity: sensor.robby_reinigungsfortschritt
+      title: Reinigungsfortschritt
+      unit: '%'
+    - entity: sensor.robby_reinigungsbereich
+      title: Reinigungsbereich
+      unit: m²
+    - entity: sensor.robby_reinigungszeit
+      divide_by: 60
+      scale: 1
+      title: Reinigungszeit
+      unit: min
+```
+
 ## Card configuration
 
 ```yaml

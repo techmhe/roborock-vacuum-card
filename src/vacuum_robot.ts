@@ -63,11 +63,19 @@ export class VacuumRobot {
   }
 
   public getMopMode(): RoborockMopMode {
-    return this.state(`select.${this.name}_mop_intensity`);
+    const entityId = this.getExistingEntityId([
+      `select.${this.name}_mop_intensity`,    // English
+      `select.${this.name}_wischmopp_intensiat`, // German
+    ]);
+    return entityId ? this.state(entityId) : RoborockMopMode.Off;
   }
 
   public getRouteMode(): RoborockRouteMode {
-    return this.state(`select.${this.name}_mop_mode`);
+    const entityId = this.getExistingEntityId([
+      `select.${this.name}_mop_mode`,         // English
+      `select.${this.name}_route`,            // German
+    ]);
+    return entityId ? this.state(entityId) : RoborockRouteMode.Standard;
   }
 
   public callServiceAsync(service: string) {
@@ -95,15 +103,27 @@ export class VacuumRobot {
   }
 
   public setMopModeAsync(value: RoborockMopMode) {
+    const entityId = this.getExistingEntityId([
+      `select.${this.name}_mop_intensity`,    // English
+      `select.${this.name}_wischmopp_intensiat`, // German
+    ]);
+    if (!entityId) return Promise.resolve();
+    
     return this.hass.callService('select', 'select_option', {
-      entity_id: `select.${this.name}_mop_intensity`,
+      entity_id: entityId,
       option: value,
     });
   }
 
   public setRouteModeAsync(value: RoborockRouteMode) {
+    const entityId = this.getExistingEntityId([
+      `select.${this.name}_mop_mode`,         // English
+      `select.${this.name}_route`,            // German
+    ]);
+    if (!entityId) return Promise.resolve();
+    
     return this.hass.callService('select', 'select_option', {
-      entity_id: `select.${this.name}_mop_mode`,
+      entity_id: entityId,
       option: value,
     });
   }
@@ -114,5 +134,13 @@ export class VacuumRobot {
 
   private getAttributeValue(entity: HassEntity, attribute: string) {
     return entity.attributes[attribute];
+  }
+
+  private getExistingEntityId(entityIds: string[]): string | undefined {
+    for (let entityId of entityIds) {
+      if (this.hass.states[entityId])
+        return entityId;
+    }
+    return undefined;
   }
 }
