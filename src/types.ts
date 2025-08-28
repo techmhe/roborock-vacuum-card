@@ -63,6 +63,8 @@ export interface RoborockArea {
   name?: string;
   area_id: string;
   roborock_area_id: number;
+  room_id?: string; // for map-based rooms
+  map_flag?: number; // for map-based rooms
 }
 
 export interface Button<T> {
@@ -91,6 +93,22 @@ export interface VacuumArea {
   roborock_area_id: number;
 }
 
+export interface RoborockRoom {
+  room_id: string;
+  name: string;
+}
+
+export interface RoborockMap {
+  flag: number;
+  name: string;
+  rooms: Record<string, string>;
+}
+
+export interface VacuumMapArea {
+  map_flag: number;
+  room_id: string;
+}
+
 export interface RoborockCleaningParameters {
   suction?: RoborockSuctionMode
   mop?: RoborockMopMode
@@ -101,6 +119,7 @@ export interface RoborockVacuumCardConfig {
   entity: string;
   stats: Record<string, VacuumCardStat[]>;
   areas?: VacuumArea[];
+  maps?: VacuumMapArea[];
   default_mode?: RoborockCleaningMode;
   default_modes?: Record<RoborockCleaningMode, RoborockCleaningParameters>;
 }

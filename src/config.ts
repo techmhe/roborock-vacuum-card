@@ -40,6 +40,7 @@ export default function buildConfig(
     entity: config.entity,
     stats: config.stats ?? {},
     areas: config.areas ?? [],
+    maps: config.maps ?? [],
     default_mode: RoborockCleaningMode.VacAndMop,
     default_modes: { ...config.default_modes, ...default_modes }
   };
