@@ -106,8 +106,8 @@ export interface RoborockVacuumCardConfig {
 }
 
 export interface RoborockSensorIds {
-  cleaning: string;
-  mopDrying: string;
-  mopDryingRemainingTime: string;
-  battery: string;
+  cleaning: string | undefined;
+  mopDrying: string | undefined;
+  mopDryingRemainingTime: string | undefined;
+  battery: string | undefined;
 }

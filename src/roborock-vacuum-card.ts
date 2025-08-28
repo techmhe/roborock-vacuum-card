@@ -50,10 +50,22 @@ export class RoborockVacuumCard extends LitElement {
   get sensor(): RoborockSensorIds {
     const name = this.name;
     return {
-      cleaning: `binary_sensor.${name}_cleaning`,
-      mopDrying: `binary_sensor.${name}_mop_drying`,
-      mopDryingRemainingTime: `sensor.${name}_mop_drying_remaining_time`,
-      battery: `sensor.${name}_battery`,
+      cleaning: this._getExistingSensorId([
+        `binary_sensor.${name}_cleaning`,      // English
+        `binary_sensor.${name}_reinigen`,      // German
+      ]),
+      mopDrying: this._getExistingSensorId([
+        `binary_sensor.${name}_mop_drying`,    // English
+        `binary_sensor.${name}_mopp_trocknen`, // German (hypothetical)
+      ]),
+      mopDryingRemainingTime: this._getExistingSensorId([
+        `sensor.${name}_mop_drying_remaining_time`,    // English
+        `sensor.${name}_mopp_trocknen_verbleibende_zeit`, // German (hypothetical)
+      ]),
+      battery: this._getExistingSensorId([
+        `sensor.${name}_battery`,              // English
+        `sensor.${name}_batterie`,             // German
+      ]),
     };
   }
 
@@ -102,7 +114,7 @@ export class RoborockVacuumCard extends LitElement {
       .trim();
     this.robot.setHass(this.hass);
 
-    const isCleaning = this.state(this.sensor.cleaning) == 'on';
+    const isCleaning = this.sensor.cleaning ? this.state(this.sensor.cleaning) == 'on' : false;
     const state = this.state(this.config.entity);
     const combinedState = this.renderState(state);
     const errors = this.renderErrors();
@@ -333,6 +345,9 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private renderMopDrying(): Template {
+    if (!this.sensor.mopDrying)
+      return nothing;
+      
     const mopDryingEntity = this.hass.states[this.sensor.mopDrying];
     if (!mopDryingEntity)
       return nothing;
@@ -341,7 +356,24 @@ export class RoborockVacuumCard extends LitElement {
     if (isDrying != 'on')
       return nothing;
 
-    const timeLeft = Number(this.hass.states[this.sensor.mopDryingRemainingTime].state);
+    if (!this.sensor.mopDryingRemainingTime)
+      return html`
+        <div class="tip">
+          <ha-icon icon="mdi:heat-wave"></ha-icon>
+          <span class="icon-title">Drying</span>
+        </div>
+      `;
+
+    const timeEntity = this.hass.states[this.sensor.mopDryingRemainingTime];
+    if (!timeEntity)
+      return html`
+        <div class="tip">
+          <ha-icon icon="mdi:heat-wave"></ha-icon>
+          <span class="icon-title">Drying</span>
+        </div>
+      `;
+
+    const timeLeft = Number(timeEntity.state);
 
     return html`
       <div class="tip" @click="${() => this.handleMore(this.sensor.mopDryingRemainingTime)}">
@@ -352,6 +384,9 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private renderBattery(): Template {
+    if (!this.sensor.battery)
+      return html``;
+
     const entity = this.hass.states[this.sensor.battery];
 
     if (!entity)
