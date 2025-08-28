@@ -40,8 +40,6 @@ export class RoborockVacuumCard extends LitElement {
   private config!: RoborockVacuumCardConfig;
   @state()
   private popupActive: boolean = false;
-  @state()
-  private currentMapFlag: number = 0;
 
   private iconColor: string = '#000';
   private robot!: VacuumRobot;
@@ -111,9 +109,6 @@ export class RoborockVacuumCard extends LitElement {
   protected render(): Template {
     if (!this.hass || !this.config)
       return nothing;
-
-    // Initialize current map if we have maps configuration
-    this.initializeCurrentMap();
 
     this.iconColor = getComputedStyle(document.documentElement)
       .getPropertyValue("--state-icon-color")
@@ -438,20 +433,27 @@ export class RoborockVacuumCard extends LitElement {
   }
 
   private initializeCurrentMap() {
-    if (!this.config.maps || this.config.maps.length === 0) {
-      return;
+    // This method is no longer needed as we use the select entity
+    // Keeping for backward compatibility in case it's called elsewhere
+  }
+
+  private getCurrentMapFlag(): number {
+    // If map_select_entity is configured, use it to get current map
+    if (this.config.map_select_entity) {
+      const selectEntity = this.hass.states[this.config.map_select_entity];
+      if (selectEntity && selectEntity.state) {
+        const currentMapName = selectEntity.state;
+        const maps = this.getVacuumMaps();
+        const map = maps.find(m => m.name === currentMapName);
+        if (map) {
+          return map.flag;
+        }
+      }
     }
 
+    // Fallback: return first available map flag or 0
     const maps = this.getVacuumMaps();
-    if (maps.length === 0) {
-      return;
-    }
-
-    // If current map is not valid, set to first available map
-    const currentMapExists = maps.some(map => map.flag === this.currentMapFlag);
-    if (!currentMapExists) {
-      this.currentMapFlag = maps[0].flag;
-    }
+    return maps.length > 0 ? maps[0].flag : 0;
   }
 
   private renderMapSwitcher(): Template {
@@ -462,8 +464,9 @@ export class RoborockVacuumCard extends LitElement {
       return nothing;
     }
 
-    const currentMap = this.getCurrentMap();
-    const mapName = currentMap ? currentMap.name : `Map ${this.currentMapFlag}`;
+    const currentMapFlag = this.getCurrentMapFlag();
+    const currentMap = maps.find(map => map.flag === currentMapFlag);
+    const mapName = currentMap ? currentMap.name : `Map ${currentMapFlag}`;
 
     return html`
       <div class="map-switcher" @click=${this.onMapSwitcherClick}>
@@ -478,10 +481,20 @@ export class RoborockVacuumCard extends LitElement {
     const maps = this.getVacuumMaps();
     if (maps.length <= 1) return;
 
+    const currentMapFlag = this.getCurrentMapFlag();
+    
     // Find current map index and switch to next
-    const currentIndex = maps.findIndex(map => map.flag === this.currentMapFlag);
+    const currentIndex = maps.findIndex(map => map.flag === currentMapFlag);
     const nextIndex = (currentIndex + 1) % maps.length;
-    this.currentMapFlag = maps[nextIndex].flag;
+    const nextMap = maps[nextIndex];
+
+    // If map_select_entity is configured, use it to change map
+    if (this.config.map_select_entity && nextMap) {
+      this.hass.callService('select', 'select_option', {
+        entity_id: this.config.map_select_entity,
+        option: nextMap.name
+      });
+    }
   }
 
   private getVacuumMaps(): RoborockMap[] {
@@ -500,7 +513,8 @@ export class RoborockVacuumCard extends LitElement {
 
   private getCurrentMap(): RoborockMap | undefined {
     const maps = this.getVacuumMaps();
-    return maps.find(map => map.flag === this.currentMapFlag);
+    const currentMapFlag = this.getCurrentMapFlag();
+    return maps.find(map => map.flag === currentMapFlag);
   }
 
   private getAreas() {
@@ -527,8 +541,9 @@ export class RoborockVacuumCard extends LitElement {
       }
 
       // Process map-based rooms
+      const currentMapFlag = this.getCurrentMapFlag();
       for (const { map_flag, room_id } of this.config.maps) {
-        if (map_flag !== this.currentMapFlag) {
+        if (map_flag !== currentMapFlag) {
           continue;
         }
 

@@ -159,6 +159,9 @@ maps:
   - map_flag: 1
     room_id: "20"  # Bathroom
 
+# Optional: Map select entity for automatic map synchronization
+map_select_entity: select.robby_ausgewahlte_karte
+
 # Maps with no rooms (like Bedroom map) will appear as a single cleanable area
 ```
 
@@ -196,5 +199,23 @@ vacuum.robby:
 - **Dynamic Rooms**: Room selection in the cleaning popup updates based on the currently selected map
 - **Empty Maps**: Maps with no rooms appear as a single cleanable area using the map name
 - **Backward Compatibility**: Existing `areas` configuration continues to work
+
+### Map Synchronization with Home Assistant
+
+When using the `map_select_entity` configuration, the card automatically synchronizes with your vacuum's current map selection:
+
+- **Automatic Updates**: The card displays the currently selected map from your Home Assistant select entity
+- **Seamless Integration**: Clicking the map switcher updates the select entity, which changes the robot's active map
+- **Consistent State**: Map changes made elsewhere in Home Assistant are reflected in the card
+
+Example select entity (as provided by Roborock integration):
+```yaml
+select.robby_ausgewahlte_karte:
+  state: "EG"
+  options: ["EG", "OG", "Schlafzimmer"]
+  friendly_name: "Robby Ausgewählte Karte"
+```
+
+Without `map_select_entity`, the card uses internal state management for map switching.
 
 ```

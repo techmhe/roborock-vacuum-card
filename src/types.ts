@@ -120,6 +120,7 @@ export interface RoborockVacuumCardConfig {
   stats: Record<string, VacuumCardStat[]>;
   areas?: VacuumArea[];
   maps?: VacuumMapArea[];
+  map_select_entity?: string; // Optional select entity for map switching
   default_mode?: RoborockCleaningMode;
   default_modes?: Record<RoborockCleaningMode, RoborockCleaningParameters>;
 }
