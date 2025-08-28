@@ -478,21 +478,14 @@ export class RoborockVacuumCard extends LitElement {
         const maps = this.getVacuumMaps();
         const map = maps.find(m => m.name === currentMapName);
         if (map) {
-          console.debug('Current map found:', currentMapName, 'flag:', map.flag);
           return map.flag;
-        } else {
-          console.debug('No map found for name:', currentMapName, 'available maps:', maps.map(m => m.name));
         }
-      } else {
-        console.debug('No select entity state found for:', this.config.map_select_entity);
       }
     }
 
     // Fallback: return first available map flag or 0
     const maps = this.getVacuumMaps();
-    const fallbackFlag = maps.length > 0 ? maps[0].flag : 0;
-    console.debug('Using fallback map flag:', fallbackFlag);
-    return fallbackFlag;
+    return maps.length > 0 ? maps[0].flag : 0;
   }
 
   private renderMapSwitcher(): Template {
@@ -532,19 +525,18 @@ export class RoborockVacuumCard extends LitElement {
     if (!selectedMap) return;
 
     try {
-      // First, send the load_multi_map command to the robot
+      // Send the load_multi_map command to the robot
+      // The robot should change its active map and the HA select entity should update automatically
       await this.robot.loadMultiMapAsync(selectedMapFlag);
       
-      // Then update the Home Assistant select entity if configured
-      if (this.config.map_select_entity) {
-        await this.hass.callService('select', 'select_option', {
-          entity_id: this.config.map_select_entity,
-          option: selectedMap.name
-        });
-      }
+      // Note: We don't manually update the select entity here because it should
+      // update automatically when the robot changes its map. If needed, we can
+      // add a fallback update after a short delay.
+      
     } catch (error) {
       console.error('Failed to switch map:', error);
-      // You might want to show an error message to the user
+      // If the robot command fails, we might want to show an error message
+      // For now, we'll just log it
     }
   }
 
@@ -571,9 +563,7 @@ export class RoborockVacuumCard extends LitElement {
       mapsData[map_flag].rooms[room_id] = room_name;
     }
     
-    const maps = Object.values(mapsData);
-    console.debug('Built maps from config:', maps);
-    return maps;
+    return Object.values(mapsData);
   }
 
   private getCurrentMap(): RoborockMap | undefined {

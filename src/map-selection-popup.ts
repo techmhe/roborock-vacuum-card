@@ -27,7 +27,7 @@ export class MapSelectionPopup extends LitElement {
 
       .popup-card {
         position: relative;
-        color: var(--primary-text-color);
+        color: var(--vc-primary-text-color, var(--primary-text-color));
         border-radius: 16px;
         background-color: var(--card-background-color);
         min-width: 300px;
@@ -47,7 +47,7 @@ export class MapSelectionPopup extends LitElement {
         text-align: center;
         font-weight: 500;
         font-size: 1.1em;
-        color: var(--primary-text-color);
+        color: var(--vc-primary-text-color, var(--primary-text-color));
       }
 
       .content {
@@ -69,19 +69,17 @@ export class MapSelectionPopup extends LitElement {
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
-        color: var(--primary-text-color);
+        color: var(--vc-primary-text-color, var(--primary-text-color));
         font-size: 1em;
       }
 
       .map-option:hover {
-        background: var(--primary-color);
-        color: var(--text-primary-color);
+        background: var(--vc-primary-select-background, color-mix(in srgb, var(--primary-color) 15%, var(--card-background-color)));
         border-color: var(--primary-color);
       }
 
       .map-option.active {
-        background: var(--primary-color);
-        color: var(--text-primary-color);
+        background: var(--vc-primary-select-background, color-mix(in srgb, var(--primary-color) 15%, var(--card-background-color)));
         border-color: var(--primary-color);
         font-weight: 500;
       }
@@ -101,6 +99,7 @@ export class MapSelectionPopup extends LitElement {
         margin-right: 0;
         width: 16px;
         height: 16px;
+        color: var(--primary-color);
       }
     `;
   }
