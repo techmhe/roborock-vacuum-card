@@ -132,7 +132,7 @@ export class VacuumRobot {
     return this.hass.callService('vacuum', 'send_command', {
       entity_id: this.entity_id,
       command: 'load_multi_map',
-      params: mapFlag,
+      params: { map_flag: mapFlag },
     });
   }
 
